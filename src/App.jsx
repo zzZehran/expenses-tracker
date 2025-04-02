@@ -2,26 +2,34 @@ import { useState } from "react";
 function App() {
   const [expenses, setExpenses] = useState([]);
 
+  const [filter, setFilter] = useState("all");
+
   function handleForm(formData) {
     const name = formData.get("expense-name");
     const amount = formData.get("expense-amount");
     const category = formData.get("expense-category");
 
-    if (!name || !amount || !category) {
+    if (!name || !amount || !category || amount <= 0) {
       // throw new Error("Empty fields not allowed");
-      return alert("Empty fields not allowed!");
+      return alert("Please enter valid expense details!");
     }
 
     const expense = {
       name,
-      amount,
+      amount: parseFloat(amount),
       category,
     };
     setExpenses((prevValue) => [...prevValue, expense]);
   }
-  console.log(expenses);
 
-  let total = expenses.reduce((acc, el) => acc + parseFloat(el.amount), 0);
+  function handleFilter(event) {
+    const expensesFilter = event.target.value;
+    setFilter(expensesFilter);
+  }
+
+  let total = expenses
+    .filter((el) => el.category == filter || filter == "all")
+    .reduce((acc, el) => acc + el.amount, 0);
 
   return (
     <>
@@ -78,22 +86,41 @@ function App() {
             </button>
           </div>
         </form>
+        <div className="flex justify-end mb-2">
+          <label htmlFor="filter" className="mr-3 pt-1">
+            Filter
+          </label>
+          <select
+            className="bg-zinc-100 rounded-sm px-2 py-1 w-28"
+            id="filter"
+            name="expenses-filter"
+            defaultValue=""
+            onChange={handleFilter}
+          >
+            <option value="all">All</option>
+            <option value="personal">Personal</option>
+            <option value="groceries">Groceries</option>
+            <option value="misc">Misc.</option>
+          </select>
+        </div>
         <hr />
         <ul>
-          {expenses.map((el, index) => (
-            <li
-              key={index}
-              className="text-lg p-3 px-8 bg-slate-200 flex justify-between"
-            >
-              <span className="text-xl">
-                {el.name}
-                <sub className="block text-xs">{el.category}</sub>
-              </span>
-              <span className="flex items-center font-bold text-green-600 text-xl">
-                +{el.amount}
-              </span>
-            </li>
-          ))}
+          {expenses
+            .filter((el) => el.category == filter || filter == "all")
+            .map((el, index) => (
+              <li
+                key={index}
+                className="text-lg p-3 px-8 bg-slate-200 flex justify-between"
+              >
+                <span className="text-xl">
+                  {el.name}
+                  <sub className="block text-xs">{el.category}</sub>
+                </span>
+                <span className="flex items-center font-bold text-green-600 text-xl">
+                  +{el.amount}
+                </span>
+              </li>
+            ))}
         </ul>
         <hr />
         <h2 className="mt-3 text-lg">
