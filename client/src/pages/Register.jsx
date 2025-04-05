@@ -1,11 +1,26 @@
 import React from "react";
 
 export default function Register() {
+  function register(formData) {
+    const username = formData.get("username");
+    const password = formData.get("password");
+    fetch("http://localhost:3000/api/register", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+  }
+
   return (
     <>
       <h1 className="text-center font-bold text-3xl mt-5">REGISTER</h1>
       <div className="flex justify-center m-5">
-        <form className="space-x-2" action="">
+        <form className="space-x-2" action={register}>
           <label className="text-lg px-1" htmlFor="username">
             Username
           </label>

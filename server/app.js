@@ -8,7 +8,7 @@ require("./utils/db");
 const Expense = require("./models/Expenses");
 const User = require("./models/User");
 
-app.use(cors({ credentials: true }));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 
 const sessionOptions = {
@@ -29,6 +29,15 @@ app.get("/", (req, res) => {
   res.send({ message: "Welcome to Express" });
 });
 
+app.get("/api/checkAuth", (req, res) => {
+  if (!req.session.userId) {
+    // res.status(401).send({ error: "Not logged in. Please login" });
+    res.send({ loggedIn: false });
+  } else {
+    res.send({ loggedIn: true });
+  }
+});
+
 app.get("/admin", (req, res) => {
   if (!req.session.user || !req.session.user._id) {
     return res.redirect("/register");
@@ -36,19 +45,32 @@ app.get("/admin", (req, res) => {
   res.send({ message: "You are the chosen one!" });
 });
 
-app.get("/register", async (req, res) => {
-  res.send({ message: "You must register" });
+app.post("/api/login", async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username });
+  if (!user) {
+    return res
+      .status(404)
+      .send({ error: "Invalid Credentials or user does not exist." });
+  }
+  const foundUser = await bcrypt.compare(password, user.password);
+  if (!foundUser) {
+    return res.status(401).send({ error: "Invalid Credentials" });
+  }
+  req.session.userId = user._id;
+  res.send({ loggedIn: true });
 });
 
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   const { username, password } = req.body;
   const hash = await bcrypt.hash(password, 12);
   const user = new User({
     username,
     password: hash,
   });
-  // await user.save();
-  res.send({ user });
+  await user.save();
+  console.log(user);
+  res.send({ message: "Registered Successfully!" });
 });
 
 app.get("/api/expenses", async (req, res) => {
