@@ -8,7 +8,7 @@ require("./utils/db");
 const Expense = require("./models/Expenses");
 const User = require("./models/User");
 
-app.use(cors());
+app.use(cors({ credentials: true }));
 app.use(express.json());
 
 const sessionOptions = {
@@ -25,14 +25,20 @@ const demoExpense = new Expense({
 });
 demoExpense.save();
 
+app.get("/", (req, res) => {
+  res.send({ message: "Welcome to Express" });
+});
+
 app.get("/admin", (req, res) => {
-  if (!req.session.user._id) {
-    res.redirect("/register");
+  if (!req.session.user || !req.session.user._id) {
+    return res.redirect("/register");
   }
   res.send({ message: "You are the chosen one!" });
 });
 
-app.get("/register", async (req, res) => {});
+app.get("/register", async (req, res) => {
+  res.send({ message: "You must register" });
+});
 
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
@@ -45,12 +51,7 @@ app.post("/register", async (req, res) => {
   res.send({ user });
 });
 
-app.get("/", (req, res) => {
-  res.send({ message: "You have reached express!" });
-});
-
 app.get("/api/expenses", async (req, res) => {
-  console.log("get on /expenses");
   const allExpenses = await Expense.find({});
   res.send({ message: "Expenses fetched successfully.", allExpenses });
 });
