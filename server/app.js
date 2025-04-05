@@ -1,36 +1,56 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const session = require("express-session");
+const bcrypt = require("bcrypt");
+require("./utils/db");
+
+const Expense = require("./models/Expenses");
+const User = require("./models/User");
+
 app.use(cors());
 app.use(express.json());
 
-const mongoose = require("mongoose");
-mongoose
-  .connect("mongodb://127.0.0.1:27017/expenseTracker")
-  .then(() => console.log("Connected to db"))
-  .catch(() => console.log("Some error occured"));
-
-const expenseSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  amount: { type: Number, required: true },
-  category: { type: String, required: true },
-});
-
-const Expense = mongoose.model("Expense", expenseSchema);
+const sessionOptions = {
+  secret: "thisisnotagoodsecret",
+  resave: false,
+  saveUninitialized: false,
+};
+app.use(session(sessionOptions));
 
 const demoExpense = new Expense({
   name: "Demo expense",
   amount: 50,
   category: "personal",
 });
-
 demoExpense.save();
+
+app.get("/admin", (req, res) => {
+  if (!req.session.user._id) {
+    res.redirect("/register");
+  }
+  res.send({ message: "You are the chosen one!" });
+});
+
+app.get("/register", async (req, res) => {});
+
+app.post("/register", async (req, res) => {
+  const { username, password } = req.body;
+  const hash = await bcrypt.hash(password, 12);
+  const user = new User({
+    username,
+    password: hash,
+  });
+  // await user.save();
+  res.send({ user });
+});
 
 app.get("/", (req, res) => {
   res.send({ message: "You have reached express!" });
 });
 
 app.get("/api/expenses", async (req, res) => {
+  console.log("get on /expenses");
   const allExpenses = await Expense.find({});
   res.send({ message: "Expenses fetched successfully.", allExpenses });
 });
@@ -50,6 +70,14 @@ app.delete("/api/expenses", (req, res) => {
     const deletedExpense = await Expense.findByIdAndDelete(id);
     console.log(deletedExpense);
     res.send({ message: "Deleted" });
+  }, 500);
+});
+
+app.delete("/api/expenses/all", (req, res) => {
+  setTimeout(async () => {
+    const deletedExpenses = await Expense.deleteMany({});
+    console.log(deletedExpenses);
+    res.send({ message: "Deleted all" });
   }, 500);
 });
 
