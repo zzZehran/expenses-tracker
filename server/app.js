@@ -23,20 +23,20 @@ const sessionOptions = {
 };
 app.use(session(sessionOptions));
 
-const demoExpense = new Expense({
-  name: "Demo expense",
-  amount: 50,
-  category: "personal",
-});
-demoExpense.save();
+// const demoExpense = new Expense({
+//   name: "Demo expense",
+//   amount: 50,
+//   category: "personal",
+// });
+// demoExpense.save();
 
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to Express" });
 });
 
 app.get("/api/checkAuth", (req, res) => {
-  console.log("SESSION ID:", req.sessionID);
-  console.log("SESSION DATA:", req.session);
+  // console.log("SESSION ID:", req.sessionID);
+  // console.log("SESSION DATA:", req.session);
   if (!req.session.userId) {
     console.log("No userId");
     res.send({ loggedIn: false });
@@ -59,9 +59,15 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).send({ error: "Invalid Credentials" });
   }
   req.session.userId = user._id;
-  console.log("Session after setting userId:", req.session);
+  // console.log("Session after setting userId:", req.session);
 
-  res.send({ loggedIn: true });
+  res.send({ loggedIn: true, user });
+});
+
+app.post("/api/logout", (req, res) => {
+  req.session.destroy();
+  console.log("Session destroyed: ", req.session);
+  res.send({ message: "Logged out successfully" });
 });
 
 app.post("/api/register", async (req, res) => {
@@ -78,15 +84,20 @@ app.post("/api/register", async (req, res) => {
 
 app.get("/api/expenses", async (req, res) => {
   const userId = req.session.userId;
-  console.log(userId);
-  const allExpenses = await Expense.find({});
+  // if (!userId) return res.status(401).send({ error: "Not logged in" });
+  const allExpenses = await Expense.find({ userId });
   res.send({ message: "Expenses fetched successfully.", allExpenses });
 });
 
 app.post("/api/expenses", async (req, res) => {
   setTimeout(async () => {
     const { name, amount, category } = req.body;
-    const newExpense = new Expense({ name, amount, category });
+    const newExpense = new Expense({
+      name,
+      amount,
+      category,
+      userId: req.session.userId,
+    });
     await newExpense.save();
     res.send({ message: "Successfully added." });
   }, 500);

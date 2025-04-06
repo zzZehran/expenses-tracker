@@ -9,6 +9,7 @@ export default function ExpenseForm({ loadingUpdater }) {
 
     fetch("http://localhost:3000/api/expenses", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

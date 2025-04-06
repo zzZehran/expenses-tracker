@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-export default function Login({ loginUpdater }) {
+export default function Login({ loginUpdater, setUser }) {
   const navigate = useNavigate();
   function login(formData) {
     const username = formData.get("username");
@@ -17,6 +17,7 @@ export default function Login({ loginUpdater }) {
       .then((data) => {
         if (data.loggedIn) {
           loginUpdater(true);
+          // setUser(data.user);
           navigate("/");
         } else {
           alert("Couldn't login");

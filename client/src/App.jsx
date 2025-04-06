@@ -13,6 +13,7 @@ import Register from "./pages/Register";
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState();
 
   useEffect(() => {
     console.log("Running..");
@@ -42,9 +43,8 @@ function App() {
     {
       path: "/",
       element: isLoggedIn ? (
-        <Home />
+        <Home loginUpdater={(value) => setIsLoggedIn(value)} user={user} />
       ) : (
-        // <Login loginUpdater={(value) => setIsLoggedIn(value)} />
         <Navigate to="/login" />
       ),
     },
@@ -53,7 +53,10 @@ function App() {
       element: isLoggedIn ? (
         <Navigate to="/" />
       ) : (
-        <Login loginUpdater={(value) => setIsLoggedIn(value)} />
+        <Login
+          loginUpdater={(value) => setIsLoggedIn(value)}
+          setUser={(value) => setUser(value)}
+        />
       ),
     },
     {

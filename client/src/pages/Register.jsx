@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
+  const navigate = useNavigate();
   function register(formData) {
     const username = formData.get("username");
     const password = formData.get("password");
@@ -13,7 +15,10 @@ export default function Register() {
       body: JSON.stringify({ username, password }),
     })
       .then((response) => response.json())
-      .then((data) => console.log(data));
+      .then((data) => {
+        console.log(data);
+        navigate("/");
+      });
   }
 
   return (
