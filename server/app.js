@@ -15,6 +15,11 @@ const sessionOptions = {
   secret: "thisisnotagoodsecret",
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  },
 };
 app.use(session(sessionOptions));
 
@@ -30,19 +35,15 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/checkAuth", (req, res) => {
+  console.log("SESSION ID:", req.sessionID);
+  console.log("SESSION DATA:", req.session);
   if (!req.session.userId) {
-    // res.status(401).send({ error: "Not logged in. Please login" });
+    console.log("No userId");
     res.send({ loggedIn: false });
   } else {
+    console.log("Found userId");
     res.send({ loggedIn: true });
   }
-});
-
-app.get("/admin", (req, res) => {
-  if (!req.session.user || !req.session.user._id) {
-    return res.redirect("/register");
-  }
-  res.send({ message: "You are the chosen one!" });
 });
 
 app.post("/api/login", async (req, res) => {
@@ -58,6 +59,8 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).send({ error: "Invalid Credentials" });
   }
   req.session.userId = user._id;
+  console.log("Session after setting userId:", req.session);
+
   res.send({ loggedIn: true });
 });
 
@@ -74,6 +77,8 @@ app.post("/api/register", async (req, res) => {
 });
 
 app.get("/api/expenses", async (req, res) => {
+  const userId = req.session.userId;
+  console.log(userId);
   const allExpenses = await Expense.find({});
   res.send({ message: "Expenses fetched successfully.", allExpenses });
 });

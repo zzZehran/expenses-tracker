@@ -3,6 +3,7 @@ const url = "http://localhost:3000/api";
 export const fetchExpenses = async () => {
   const response = await fetch(`${url}/expenses`, {
     method: "GET",
+    credentials: "include",
   });
   const data = await response.json();
   return data.allExpenses;

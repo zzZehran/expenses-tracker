@@ -50,7 +50,11 @@ function App() {
     },
     {
       path: "/login",
-      element: <Login loginUpdater={(value) => setIsLoggedIn(value)} />,
+      element: isLoggedIn ? (
+        <Navigate to="/" />
+      ) : (
+        <Login loginUpdater={(value) => setIsLoggedIn(value)} />
+      ),
     },
     {
       path: "/register",
